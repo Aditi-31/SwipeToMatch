@@ -16,6 +16,9 @@
 		D7590CF82C8782D300ADE60F /* SwipeToMatchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7590CF72C8782D300ADE60F /* SwipeToMatchTests.swift */; };
 		D7590D022C8782D300ADE60F /* SwipeToMatchUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7590D012C8782D300ADE60F /* SwipeToMatchUITests.swift */; };
 		D7590D042C8782D300ADE60F /* SwipeToMatchUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7590D032C8782D300ADE60F /* SwipeToMatchUITestsLaunchTests.swift */; };
+		D7590D112C87830000ADE60F /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7590D102C87830000ADE60F /* Model.swift */; };
+		D7590D132C87833300ADE60F /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7590D122C87833300ADE60F /* ViewModel.swift */; };
+		D7590D172C87914300ADE60F /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = D7590D162C87914300ADE60F /* SDWebImageSwiftUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +51,8 @@
 		D7590CFD2C8782D300ADE60F /* SwipeToMatchUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwipeToMatchUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7590D012C8782D300ADE60F /* SwipeToMatchUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeToMatchUITests.swift; sourceTree = "<group>"; };
 		D7590D032C8782D300ADE60F /* SwipeToMatchUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeToMatchUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		D7590D102C87830000ADE60F /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
+		D7590D122C87833300ADE60F /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D7590D172C87914300ADE60F /* SDWebImageSwiftUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,6 +88,7 @@
 				D7590CF62C8782D300ADE60F /* SwipeToMatchTests */,
 				D7590D002C8782D300ADE60F /* SwipeToMatchUITests */,
 				D7590CDF2C8782D100ADE60F /* Products */,
+				D7590D152C87914300ADE60F /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -104,6 +111,8 @@
 				D7590CEA2C8782D300ADE60F /* Persistence.swift */,
 				D7590CEC2C8782D300ADE60F /* SwipeToMatch.xcdatamodeld */,
 				D7590CE72C8782D300ADE60F /* Preview Content */,
+				D7590D102C87830000ADE60F /* Model.swift */,
+				D7590D122C87833300ADE60F /* ViewModel.swift */,
 			);
 			path = SwipeToMatch;
 			sourceTree = "<group>";
@@ -133,6 +142,13 @@
 			path = SwipeToMatchUITests;
 			sourceTree = "<group>";
 		};
+		D7590D152C87914300ADE60F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -149,6 +165,9 @@
 			dependencies = (
 			);
 			name = SwipeToMatch;
+			packageProductDependencies = (
+				D7590D162C87914300ADE60F /* SDWebImageSwiftUI */,
+			);
 			productName = SwipeToMatch;
 			productReference = D7590CDE2C8782D100ADE60F /* SwipeToMatch.app */;
 			productType = "com.apple.product-type.application";
@@ -221,6 +240,9 @@
 				Base,
 			);
 			mainGroup = D7590CD52C8782D100ADE60F;
+			packageReferences = (
+				D7590D142C87913300ADE60F /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */,
+			);
 			productRefGroup = D7590CDF2C8782D100ADE60F /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -263,9 +285,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D7590D112C87830000ADE60F /* Model.swift in Sources */,
 				D7590CEB2C8782D300ADE60F /* Persistence.swift in Sources */,
 				D7590CEE2C8782D300ADE60F /* SwipeToMatch.xcdatamodeld in Sources */,
 				D7590CE42C8782D100ADE60F /* ContentView.swift in Sources */,
+				D7590D132C87833300ADE60F /* ViewModel.swift in Sources */,
 				D7590CE22C8782D100ADE60F /* SwipeToMatchApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -596,6 +620,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D7590D142C87913300ADE60F /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImageSwiftUI";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.1.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		D7590D162C87914300ADE60F /* SDWebImageSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D7590D142C87913300ADE60F /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
+			productName = SDWebImageSwiftUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		D7590CEC2C8782D300ADE60F /* SwipeToMatch.xcdatamodeld */ = {
