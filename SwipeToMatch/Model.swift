@@ -12,7 +12,11 @@ struct UserResponse: Codable {
     let info: Info
 }
 
-struct User: Codable {    
+struct User: Codable, Equatable {
+    static func == (lhs: User, rhs: User) -> Bool {
+        return true
+    }
+    
     let gender: String
     let name: Name
     let location: Location

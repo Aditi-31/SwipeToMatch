@@ -10,8 +10,9 @@ import CoreData
 import SDWebImageSwiftUI
 struct ContentView: View {
     @ObservedObject var viewModel = UserService()
-    @State private var xCoordinate: CGFloat = 0
-    @State private var yCoordinate: CGFloat = 0
+    @State private var activeCardIndex: Int? = nil
+    @State private var cardStates: [CardState] = []
+    @State private var i: Int = 0
     var body: some View {
         VStack {
             // Top Stack
@@ -33,8 +34,15 @@ struct ContentView: View {
             // Image Card View
             ZStack {
                 ForEach(viewModel.userData.indices, id: \.self) { index in
-                    CardView(user: viewModel.userData[index])
+                    if index < cardStates.count {
+                        CardView(
+                            user: viewModel.userData[index],
+                            activeCardIndex: $activeCardIndex,
+                            cardIndex: index,
+                            cardState: $cardStates[index]
+                        )
                         .padding(8)
+                    }
                 }
             }
             .zIndex(1.0)
@@ -45,9 +53,14 @@ struct ContentView: View {
                     Image("refresh")
                 }
                 Button(action: {
-                    withAnimation(Animation.easeIn(duration: 0.8)){
-                        
+                    if let index = activeCardIndex {
+                        withAnimation(Animation.easeIn(duration: 0.8)) {
+                            cardStates[index].xCoordinate = -500
+                            cardStates[index].degree = -12
+                            i = i - 1
+                        }
                     }
+                    
                 }) {
                     Image("dismiss")
                 }
@@ -55,7 +68,15 @@ struct ContentView: View {
                     Image("super_like")
                 }
                 Button(action: {
-                    
+                    if i >= 0 {
+                        let likedUser = viewModel.userData[i]
+                        saveLikedUser(likedUser)
+                        withAnimation(Animation.easeIn(duration: 0.8)) {
+                            cardStates[i].xCoordinate = 500
+                            cardStates[i].degree = 12
+                            i -= 1
+                        }
+                    }
                 }) {
                     Image("like")
                 }
@@ -64,29 +85,49 @@ struct ContentView: View {
                 }
             }
         }
+        .onAppear {
+            initializeCardState()
+        }
+        .onChange(of: viewModel.userData) { _ in
+            initializeCardState()
+        }
     }
     
-
+    func initializeCardState() {
+        cardStates = Array(repeating: CardState(), count: viewModel.userData.count)
+        i = viewModel.userData.count - 1
+    }
+    func saveLikedUser(_ user: User) {
+        var likedUsers = getLikedUsers()
+        likedUsers.append(user)
+        
+        if let encoded = try? JSONEncoder().encode(likedUsers) {
+            UserDefaults.standard.set(encoded, forKey: "LikedUsers")
+        }
+    }
     
-    enum SwipeDirection {
-        case left, right
+    func getLikedUsers() -> [User] {
+        if let data = UserDefaults.standard.data(forKey: "LikedUsers"),
+           let users = try? JSONDecoder().decode([User].self, from: data) {
+            return users
+        }
+        return []
     }
 }
 
-
-#Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+struct CardState {
+    var xCoordinate: CGFloat = 0
+    var yCoordinate: CGFloat = 0
+    var degree: CGFloat = 0
 }
 
 struct CardView: View {
     let cardGradient = Gradient(colors: [Color.black.opacity(0), Color.black.opacity(0.5)])
     let user: User
-
-
-    @State private var xCoordinate: CGFloat = 0
-    @State private var yCoordinate: CGFloat = 0
-    @State private var degree: CGFloat = 0
-
+    @Binding var activeCardIndex: Int?
+    let cardIndex: Int
+    @Binding var cardState: CardState
+    
     var body: some View {
         ZStack(alignment: .topLeading) {
             var imageUrl: String = user.picture.large
@@ -115,57 +156,46 @@ struct CardView: View {
             }
             .padding()
             .foregroundColor(.white)
-            
-            HStack {
-                Image("yes")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 150)
-                    .opacity(Double(xCoordinate / 10 - 1))
-                Spacer()
-                Image("nope")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 150)
-                    .opacity(Double((xCoordinate / 10 * -1) - 1))
-            }
         }
         .cornerRadius(8)
-        .offset(x: xCoordinate, y: yCoordinate)
-        .rotationEffect(.init(degrees: degree))
+        .offset(x: cardState.xCoordinate, y: cardState.yCoordinate)
+        .rotationEffect(.init(degrees: cardState.degree))
         .gesture(
             DragGesture()
                 .onChanged { value in
                     withAnimation(.default) {
-                        xCoordinate = value.translation.width
-                        yCoordinate = value.translation.height
-                        degree = 7 * (value.translation.width > 0 ? 1 : -1)
+                        cardState.xCoordinate = value.translation.width
+                        cardState.yCoordinate = value.translation.height
+                        cardState.degree = 7 * (value.translation.width > 0 ? 1 : -1)
+                        activeCardIndex = cardIndex
                     }
                 }
                 .onEnded { value in
                     withAnimation(.interpolatingSpring(mass: 1.0, stiffness: 50, damping: 8, initialVelocity: 0)) {
                         switch value.translation.width {
                         case 0...100:
-                            xCoordinate = 0
-                            yCoordinate = 0
-                            degree = 0
+                            cardState.xCoordinate = 0
+                            cardState.yCoordinate = 0
+                            cardState.degree = 0
                         case let x where x > 100:
-                            xCoordinate = 500
-                            degree = 12
+                            cardState.xCoordinate = 500
+                            cardState.degree = 12
                         case (-100)...(-1):
-                            xCoordinate = 0
-                            yCoordinate = 0
-                            degree = 0
+                            cardState.xCoordinate = -500
+                            cardState.degree = -12
                         case let x where x < -100:
-                            xCoordinate = -500
-                            degree = -12
+                            cardState.xCoordinate = -500
+                            cardState.degree = -12
                         default:
-                            xCoordinate = 0
-                            yCoordinate = 0
+                            cardState.xCoordinate = 0
+                            cardState.yCoordinate = 0
                         }
+                        activeCardIndex = nil
                     }
                 }
         )
-        
     }
+}
+#Preview {
+    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
 }
