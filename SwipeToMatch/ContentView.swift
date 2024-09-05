@@ -10,93 +10,104 @@ import CoreData
 import SDWebImageSwiftUI
 struct ContentView: View {
     @ObservedObject var viewModel = UserService()
-    @State private var activeCardIndex: Int? = nil
+    @State private var activeCardIndex: Int = 0
     @State private var cardStates: [CardState] = []
+    @State private var userData: [User] = []
     @State private var i: Int = 0
+    @State private var flag: Bool = true
     var body: some View {
         VStack {
-            // Top Stack
-            HStack {
-                Button(action: {}) {
-                    Image("profile")
-                }
-                Spacer()
-                Button(action: {}) {
-                    Image("appIcon")
-                        .resizable().aspectRatio(contentMode: .fit).frame(height: 45)
-                }
-                Spacer()
-                Button(action: {}) {
-                    Image("chats")
-                }
-            }.padding(.horizontal)
-            
-            // Image Card View
-            ZStack {
-                ForEach(viewModel.userData.indices, id: \.self) { index in
-                    if index < cardStates.count {
-                        CardView(
-                            user: viewModel.userData[index],
-                            activeCardIndex: $activeCardIndex,
-                            cardIndex: index,
-                            cardState: $cardStates[index]
-                        )
-                        .padding(8)
+            if viewModel.dataFlag == false {
+                ProgressView("Loading users...") // Loading indicator while data is fetched
+            } else {
+                // Top Stack
+                HStack {
+                    Button(action: {}) {
+                        Image("profile")
                     }
-                }
-            }
-            .zIndex(1.0)
-            
-            // Bottom Stack
-            HStack(spacing: 0) {
-                Button(action: {}) {
-                    Image("refresh")
-                }
-                Button(action: {
-                    if let index = activeCardIndex {
-                        withAnimation(Animation.easeIn(duration: 0.8)) {
-                            cardStates[index].xCoordinate = -500
-                            cardStates[index].degree = -12
-                            i = i - 1
+                    Spacer()
+                    Button(action: {}) {
+                        Image("appIcon")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(height: 45)
+                    }
+                    Spacer()
+                    Button(action: {}) {
+                        Image("chats")
+                    }
+                }.padding(.horizontal)
+                
+                // Image Card View
+                ZStack {
+                    ForEach(viewModel.userData.indices, id: \.self) { index in
+                        if index < cardStates.count {
+                            
+                            CardView(
+                                user: viewModel.userData[index],
+                                i: $i,
+                                cardIndex: i,
+                                cardState: $cardStates[index]
+                            )
+                            .padding(8)
                         }
                     }
-                    
-                }) {
-                    Image("dismiss")
                 }
-                Button(action: {}) {
-                    Image("super_like")
-                }
-                Button(action: {
-                    if i >= 0 {
-                        let likedUser = viewModel.userData[i]
-                        saveLikedUser(likedUser)
-                        withAnimation(Animation.easeIn(duration: 0.8)) {
-                            cardStates[i].xCoordinate = 500
-                            cardStates[i].degree = 12
-                            i -= 1
-                        }
+                .zIndex(1.0)
+                
+                // Bottom Stack
+                HStack(spacing: 0) {
+                    Button(action: {}) {
+                        Image("refresh")
                     }
-                }) {
-                    Image("like")
-                }
-                Button(action: {}) {
-                    Image("boost")
+                    Button(action: {
+                        if i >= 0 {
+                            withAnimation(Animation.easeIn(duration: 0.8)) {
+                                cardStates[i].xCoordinate = -500
+                                cardStates[i].degree = -12
+                                i -= 1
+                            }
+                        }
+                    }) {
+                        Image("dismiss")
+                    }
+                    Button(action: {}) {
+                        Image("super_like")
+                    }
+                    Button(action: {
+                        if i >= 0 {
+                            let likedUser = viewModel.userData[i]
+                            saveLikedUser(likedUser)
+                            withAnimation(Animation.easeIn(duration: 0.8)) {
+                                cardStates[i].xCoordinate = 500
+                                cardStates[i].degree = 12
+                                i -= 1
+                            }
+                        }
+                    }) {
+                        Image("like")
+                    }
+                    Button(action: {}) {
+                        Image("boost")
+                    }
                 }
             }
         }
         .onAppear {
-            initializeCardState()
-        }
-        .onChange(of: viewModel.userData) { _ in
-            initializeCardState()
+            // Get user data count and populate cardStates
+            if viewModel.dataFlag {
+                initializeCardState()
+            }
         }
     }
     
     func initializeCardState() {
+        
         cardStates = Array(repeating: CardState(), count: viewModel.userData.count)
         i = viewModel.userData.count - 1
     }
+    
+    // Storing the liked data in local
     func saveLikedUser(_ user: User) {
         var likedUsers = getLikedUsers()
         likedUsers.append(user)
@@ -124,7 +135,7 @@ struct CardState {
 struct CardView: View {
     let cardGradient = Gradient(colors: [Color.black.opacity(0), Color.black.opacity(0.5)])
     let user: User
-    @Binding var activeCardIndex: Int?
+    @Binding var i: Int
     let cardIndex: Int
     @Binding var cardState: CardState
     
@@ -157,6 +168,9 @@ struct CardView: View {
             .padding()
             .foregroundColor(.white)
         }
+        .onAppear {
+            i = cardIndex
+        }
         .cornerRadius(8)
         .offset(x: cardState.xCoordinate, y: cardState.yCoordinate)
         .rotationEffect(.init(degrees: cardState.degree))
@@ -167,7 +181,7 @@ struct CardView: View {
                         cardState.xCoordinate = value.translation.width
                         cardState.yCoordinate = value.translation.height
                         cardState.degree = 7 * (value.translation.width > 0 ? 1 : -1)
-                        activeCardIndex = cardIndex
+                        i = cardIndex
                     }
                 }
                 .onEnded { value in
@@ -190,7 +204,9 @@ struct CardView: View {
                             cardState.xCoordinate = 0
                             cardState.yCoordinate = 0
                         }
-                        activeCardIndex = nil
+                        if i >= 0 {
+                            i = i - 1
+                        }
                     }
                 }
         )

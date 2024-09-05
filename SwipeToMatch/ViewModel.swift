@@ -6,6 +6,7 @@ class UserService: ObservableObject {
     // Singleton instance
     static let shared = UserService()
     @Published var userData: [User] = []
+    @Published var dataFlag: Bool = false
     
     init() {
         fetchRandomUsers()
@@ -41,6 +42,7 @@ class UserService: ObservableObject {
                 
                 // Ensure UI updates are on the main thread
                 DispatchQueue.main.async {
+                    self.dataFlag = true
                     self.userData = userResponse.results
                 }
                 
