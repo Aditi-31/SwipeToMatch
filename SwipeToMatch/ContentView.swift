@@ -6,7 +6,14 @@ import SDWebImageSwiftUI
 struct ContentView: View {
     @ObservedObject var viewModel = UserService()
     @State private var cardStates: [CardState] = []
-    
+    @FetchRequest(
+        entity: SaveUserData.entity(),
+        sortDescriptors: [] // No sorting by timestamp
+    ) var savedUsers: FetchedResults<SaveUserData>
+    var filteredSavedUsers: [SaveUserData] {
+         let startIndex = min(10, savedUsers.count) // Ensure the start index does not exceed the count
+         return Array(savedUsers[startIndex..<savedUsers.endIndex])
+     }
     var body: some View {
         VStack {
             if !viewModel.dataFlag {
@@ -36,7 +43,10 @@ struct ContentView: View {
                     if index < cardStates.count {
                         CardView(
                             user: user,
-                            cardState: $cardStates[index]
+                            cardState: $cardStates[index],
+                            onAction: { action, user in
+                                    saveLikedUser(user, action)
+                            }
                         )
                         .padding(8)
                     }
@@ -47,6 +57,8 @@ struct ContentView: View {
             if viewModel.dataFlag {
                 initializeCardState()
             }
+            loadSavedUsers()
+            print("document directory::: \(URL.documentsDirectory)")
         }
         .onChange(of: viewModel.userData) { newUserData in
             if !newUserData.isEmpty {
@@ -59,20 +71,41 @@ struct ContentView: View {
         cardStates = Array(repeating: CardState(), count: viewModel.userData.count)
     }
 
-//    func saveLikedUser(_ user: User) {
-//        let context = PersistenceController.shared.container.viewContext
-//        let profile = SaveUserData(context: context)
-//        profile.name = user.name.first + " " + user.name.last
-//        profile.email = user.email
-//        profile.city = user.location.city
-//        profile.isAccepted = true
-//
-//        do {
-//            try context.save()
-//        } catch {
-//            print("Failed to save user: \(error.localizedDescription)")
-//        }
-//    }
+    func saveLikedUser(_ user: User, _ action: CardAction) {
+        let context = PersistenceController.shared.container.viewContext
+        let profile = SaveUserData(context: context)
+        profile.name = user.name.first + " " + user.name.last
+        profile.email = user.email
+        profile.city = user.location.city
+        profile.age = "\(user.dob.age)"
+        profile.image = user.picture.large
+        profile.isAccepted = true
+        if action == .accepted {
+            profile.isAccepted = true
+            profile.isRejected = false
+        } else {
+            profile.isAccepted = false
+            profile.isRejected = true
+        }
+
+        do {
+            try context.save()
+        } catch {
+            print("Failed to save user: \(error.localizedDescription)")
+        }
+    }
+    func loadSavedUsers() {
+        cardStates = viewModel.userData.map { user in
+            if let savedUser = filteredSavedUsers.first(where: { $0.email == user.email && $0.isAccepted != nil }) {
+                if savedUser.isAccepted {
+                    return CardState(action: .accepted)
+                } else if savedUser.isRejected {
+                    return CardState(action: .rejected)
+                }
+            }
+            return CardState(action: .none)
+        }
+    }
 
 }
 
@@ -80,6 +113,7 @@ struct CardView: View {
     let cardGradient = Gradient(colors: [Color.black.opacity(0), Color.black.opacity(0.5)])
     let user: User
     @Binding var cardState: CardState
+    var onAction: ((CardAction, User) -> Void)?
     
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -166,6 +200,7 @@ struct CardView: View {
     func handleButtonPress(_ action: CardAction) {
         guard cardState.action == .none else { return } // Ensure only one action happens
         cardState.action = action
+        onAction?(action, user)
     }
 }
 

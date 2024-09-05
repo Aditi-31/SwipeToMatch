@@ -88,7 +88,11 @@ enum Postcode: Codable {
         }
     }
 }
-
+extension Postcode {
+    static var empty: Postcode {
+        return .string("") // or return .integer(0) based on your preference
+    }
+}
 struct Login: Codable {
     let uuid: String
     let username: String
