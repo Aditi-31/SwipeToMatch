@@ -1,5 +1,5 @@
 import Foundation
-
+import Combine
 class UserService: ObservableObject {
 
     // Singleton instance

@@ -99,6 +99,11 @@ struct ContentView: View {
                 initializeCardState()
             }
         }
+        .onChange(of: viewModel.userData) { newUserData in
+            if !newUserData.isEmpty {
+                initializeCardState()
+            }
+        }
     }
     
     func initializeCardState() {
@@ -167,6 +172,20 @@ struct CardView: View {
             }
             .padding()
             .foregroundColor(.white)
+            
+            HStack{
+                Image("yes")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width:150)
+                    .opacity(Double(cardState.xCoordinate/10 - 1))
+                Spacer()
+                Image("nope")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width:150)
+                    .opacity(Double((cardState.xCoordinate/10 * -1) - 1))
+            }
         }
         .onAppear {
             i = cardIndex
